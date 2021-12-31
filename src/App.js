@@ -1,25 +1,101 @@
-import logo from './logo.svg';
+import React, { useReducer, useState } from 'react';
 import './App.css';
 
+const formReducer = (state, event) => {
+  if(event.reset) {
+    return {
+      apple: '',
+      count: 0,
+      name: '',
+      'gift-wrap': false,
+    }
+  }
+  console.log(event)
+ return {
+   ...state,
+   [event.name]: event.value
+ }
+}
+
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+  const [formData, setFormData] = useReducer(formReducer, {
+    count: 100,
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = event => {
+    event.preventDefault();
+    setSubmitting(true);
+
+    setTimeout(() => {
+      setSubmitting(false);
+      setFormData({
+        reset: true
+      })
+    }, 3000);
+  }
+
+  const handleChange = event => {
+    // Storing Type Checkbox
+    const isCheckbox = event.target.type === 'checkbox';
+    setFormData({
+      name: event.target.name,
+      // value: event.target.value,
+      // If input type is checkbox we want the checked property and not the value property
+      // This is because the value of a checkbox will always be "on"
+      value: isCheckbox ? event.target.checked : event.target.value,
+    });
+  }
+
+  return(
+    <div className="wrapper">
+      <h1>How About Them Apples</h1>
+      {submitting &&
+        <div>
+          You are submitting the following:
+          <ul>
+            {Object.entries(formData).map(([name, value]) => (
+              <li key={name}><strong>{name}</strong>: {value.toString()}</li>
+            ))}
+          </ul>
+        </div>
+      }
+      <form onSubmit={handleSubmit}>
+        <fieldset disabled={submitting}>
+          <label>
+            <p>Name</p>
+            <input name="name" onChange={handleChange} value={formData.name || ''}/>
+          </label>
+        </fieldset>
+        <fieldset disabled={submitting}>
+          <label>
+            <p>Apples</p>
+            <select name="apple" onChange={handleChange} value={formData.apple || ''}>
+                <option value="">--Please choose an option--</option>
+                <option value="fuji">Fuji</option>
+                <option value="jonathan">Jonathan</option>
+                <option value="honey-crisp">Honey Crisp</option>
+            </select>
+          </label>
+          <label>
+            <p>Count</p>
+            <input type="number" name="count" onChange={handleChange} step="1" value={formData.count || ''}/>
+          </label>
+          <label>
+            <p>Gift Wrap</p>
+            <input
+              checked={formData['gift-wrap'] || false}
+              disabled={formData.apple !== 'fuji'}
+              name="gift-wrap"
+              onChange={handleChange}
+              type="checkbox"
+            />
+          </label>
+        </fieldset>
+        <button type="submit" disabled={submitting}>Submit</button>
+      </form>
     </div>
-  );
+  )
 }
 
 export default App;
